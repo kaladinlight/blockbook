@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math/big"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -472,7 +473,11 @@ func (b *AvalancheRPC) getBlockRaw(hash string, height uint32, fullTxs bool) (js
 	} else {
 		err = b.rpc.CallContext(ctx, &raw, "eth_getBlockByNumber", fmt.Sprintf("%#x", height), fullTxs)
 	}
-	if err != nil {
+
+	// unfinalized data cannot be queried error returned when trying to query a block height greater than last finalized block
+	// do not throw rpc error and instead treat as ErrBlockNotFound
+	// https://docs.avax.network/quickstart/exchanges/integrate-exchange-with-avalanche#determining-finality
+	if err != nil && !strings.Contains(err.Error(), "unfinalized data") {
 		return nil, errors.Annotatef(err, "hash %v, height %v", hash, height)
 	} else if len(raw) == 0 {
 		return nil, bchain.ErrBlockNotFound
