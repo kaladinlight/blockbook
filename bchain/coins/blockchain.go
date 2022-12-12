@@ -40,6 +40,7 @@ import (
 	"github.com/trezor/blockbook/bchain/coins/namecoin"
 	"github.com/trezor/blockbook/bchain/coins/nuls"
 	"github.com/trezor/blockbook/bchain/coins/omotenashicoin"
+	"github.com/trezor/blockbook/bchain/coins/optimism"
 	"github.com/trezor/blockbook/bchain/coins/pivx"
 	"github.com/trezor/blockbook/bchain/coins/polis"
 	"github.com/trezor/blockbook/bchain/coins/qtum"
@@ -131,6 +132,8 @@ func init() {
 	BlockChainFactories["BitZeny"] = bitzeny.NewBitZenyRPC
 	BlockChainFactories["Trezarcoin"] = trezarcoin.NewTrezarcoinRPC
 	BlockChainFactories["ECash"] = ecash.NewECashRPC
+	BlockChainFactories["Optimism"] = optimism.NewOptimismRPC
+	BlockChainFactories["Optimism Archive"] = optimism.NewOptimismRPC
 }
 
 // GetCoinNameFromConfig gets coin name and coin shortcut from config file
