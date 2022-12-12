@@ -46,6 +46,9 @@
 | BitZeny                | 9095                    | 9195                  | 8095             | 38395                       |
 | Trezarcoin             | 9096                    | 9196                  | 8096             | 38396                       |
 | eCash                  | 9097                    | 9197                  | 8097             | 38397                       |
+| Optimism               | 9200                    | 9300                  | 8200             | 38400 p2p, 8300 http        |
+| Optimism Archive       | 9201                    | 9301                  | 8201             | 38401 p2p, 8301 http        |
+| Optimism DTL           |                         |                       |                  | 8302 http                   |
 | Bitcoin Signet         | 19020                   | 19120                 | 18020            | 48320                       |
 | Bitcoin Regtest        | 19021                   | 19121                 | 18021            | 48321                       |
 | Ethereum Goerli        | 19026                   | 19126                 | 18026            | 48326 p2p                   |
