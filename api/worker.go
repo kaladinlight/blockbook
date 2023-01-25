@@ -264,17 +264,24 @@ func (w *Worker) GetTransactionFromBchainTx(bchainTx *bchain.Tx, height int, spe
 		// mempool txs do not have fees yet
 		if ethTxData.GasUsed != nil {
 			feesSat.Mul(ethTxData.GasPrice, ethTxData.GasUsed)
+			if ethTxData.L1Fee != nil {
+				feesSat.Add(&feesSat, ethTxData.L1Fee)
+			}
 		}
 		if len(bchainTx.Vout) > 0 {
 			valOutSat = bchainTx.Vout[0].ValueSat
 		}
 		ethSpecific = &EthereumSpecific{
-			GasLimit: ethTxData.GasLimit,
-			GasPrice: (*Amount)(ethTxData.GasPrice),
-			GasUsed:  ethTxData.GasUsed,
-			Nonce:    ethTxData.Nonce,
-			Status:   ethTxData.Status,
-			Data:     ethTxData.Data,
+			GasLimit:    ethTxData.GasLimit,
+			GasPrice:    (*Amount)(ethTxData.GasPrice),
+			GasUsed:     ethTxData.GasUsed,
+			L1Fee:       ethTxData.L1Fee,
+			L1FeeScalar: ethTxData.L1FeeScalar,
+			L1GasPrice:  (*Amount)(ethTxData.L1GasPrice),
+			L1GasUsed:   ethTxData.L1GasUsed,
+			Nonce:       ethTxData.Nonce,
+			Status:      ethTxData.Status,
+			Data:        ethTxData.Data,
 		}
 	}
 	// for now do not return size, we would have to compute vsize of segwit transactions

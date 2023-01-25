@@ -50,6 +50,24 @@
                 <td>Gas Price</td>
                 <td class="data">{{formatAmount $tx.EthereumSpecific.GasPrice}} {{$cs}}</td>
             </tr>
+            {{- if $tx.EthereumSpecific.L1GasUsed -}}
+            <tr>
+                <td>L1 Gas Used</td>
+                <td class="data">{{$tx.EthereumSpecific.L1GasUsed}}</td>
+            </tr>
+            {{- end -}}
+            {{- if $tx.EthereumSpecific.L1GasPrice -}}
+            <tr>
+                <td>L1 Gas Price</td>
+                <td class="data">{{formatAmount $tx.EthereumSpecific.L1GasPrice}} {{$cs}}</td>
+            </tr>
+            {{- end -}}
+            {{- if $tx.EthereumSpecific.L1FeeScalar -}}
+            <tr>
+                <td>L1 Fee Scalar</td>
+                <td class="data">{{$tx.EthereumSpecific.L1FeeScalar}}</td>
+            </tr>
+            {{- end -}}
             {{- else -}}
             <tr>
                 <td>Total Input</td>
