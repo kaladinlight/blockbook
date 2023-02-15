@@ -281,18 +281,15 @@ func GeneratePackageDefinitions(config *Config, templateDir, outputDir string) e
 	}
 
 	if !isEmpty(config, "backend") {
-		err = writeBackendServerConfigFile(config, outputDir)
-		if err != nil {
+		if err := writeBackendServerConfigFile(config, outputDir); err != nil {
 			return err
 		}
 
-		err = writeBackendClientConfigFile(config, outputDir)
-		if err != nil {
+		if err := writeBackendClientConfigFile(config, outputDir); err != nil {
 			return err
 		}
 
-		err = writeBackendExecScript(config, outputDir)
-		if err != nil {
+		if err := writeBackendExecScript(config, outputDir); err != nil {
 			return err
 		}
 	}
@@ -364,15 +361,16 @@ func writeBackendClientConfigFile(config *Config, outputDir string) error {
 }
 
 func writeBackendExecScript(config *Config, outputDir string) error {
+	if config.Backend.ExecScript == "" {
+		return nil
+	}
+
 	out, err := os.OpenFile(filepath.Join(outputDir, "backend/exec.sh"), os.O_CREATE|os.O_WRONLY, 0777)
 	if err != nil {
 		return err
 	}
 	defer out.Close()
 
-	if config.Backend.ExecScript == "" {
-		return nil
-	}
 	in, err := os.Open(filepath.Join(outputDir, "backend/scripts", config.Backend.ExecScript))
 	if err != nil {
 		return err
