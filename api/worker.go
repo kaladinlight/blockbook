@@ -616,6 +616,9 @@ func (w *Worker) getContractDescriptorInfo(cd bchain.AddressDescriptor, typeFrom
 
 			validContract = false
 		} else {
+			if typeFromContext != bchain.UnknownTokenType && contractInfo.Type == bchain.UnknownTokenType {
+				contractInfo.Type = typeFromContext
+			}
 			if err = w.db.StoreContractInfo(contractInfo); err != nil {
 				glog.Errorf("StoreContractInfo error %v, contract %v", err, cd)
 			}
@@ -1014,6 +1017,7 @@ type ethereumTypeAddressData struct {
 
 func (w *Worker) getEthereumTypeAddressBalances(addrDesc bchain.AddressDescriptor, details AccountDetails, filter *AddressFilter, secondaryCoin string) (*db.AddrBalance, *ethereumTypeAddressData, error) {
 	var ba *db.AddrBalance
+	var n uint64
 	// unknown number of results for paging initially
 	d := ethereumTypeAddressData{totalResults: -1}
 	ca, err := w.db.GetAddrDescContracts(addrDesc)
@@ -1038,11 +1042,10 @@ func (w *Worker) getEthereumTypeAddressBalances(addrDesc bchain.AddressDescripto
 		if b != nil {
 			ba.BalanceSat = *b
 		}
-		n, err := w.chain.EthereumTypeGetNonce(addrDesc)
+		n, err = w.chain.EthereumTypeGetNonce(addrDesc)
 		if err != nil {
 			return nil, nil, errors.Annotatef(err, "EthereumTypeGetNonce %v", addrDesc)
 		}
-		d.nonce = strconv.Itoa(int(n))
 		ticker := w.is.GetCurrentTicker("", "")
 		if details > AccountDetailsBasic {
 			d.tokens = make([]Token, len(ca.Contracts))
@@ -1096,6 +1099,8 @@ func (w *Worker) getEthereumTypeAddressBalances(addrDesc bchain.AddressDescripto
 			}
 		}
 	}
+	// returns 0 for unknown address
+	d.nonce = strconv.Itoa(int(n))
 	// special handling if filtering for a contract, return the contract details even though the address had no transactions with it
 	if len(d.tokens) == 0 && len(filterDesc) > 0 && details >= AccountDetailsTokens {
 		t, err := w.getEthereumContractBalanceFromBlockchain(addrDesc, filterDesc, details)
@@ -1352,6 +1357,10 @@ func (w *Worker) GetAddress(address string, page int, txsOnPage int, option Acco
 		Nonce:                 ed.nonce,
 		AddressAliases:        w.getAddressAliases(addresses),
 	}
+	// keep address backward compatible, set deprecated Erc20Contract value if ERC20 token
+	if ed.contractInfo != nil && ed.contractInfo.Type == bchain.ERC20TokenType {
+		r.Erc20Contract = ed.contractInfo
+	}
 	glog.Info("GetAddress ", address, ", ", time.Since(start))
 	return r, nil
 }
@@ -1460,6 +1469,35 @@ func (w *Worker) balanceHistoryForTxid(addrDesc bchain.AddressDescriptor, txid s
 					}
 					if _, found := selfAddrDesc[string(txAddrDesc)]; found {
 						countSentToSelf = true
+					}
+				}
+			}
+			// process internal transactions
+			if eth.ProcessInternalTransactions {
+				internalData, err := w.db.GetEthereumInternalData(txid)
+				if err != nil {
+					return nil, err
+				}
+				if internalData != nil {
+					for i := range internalData.Transfers {
+						f := &internalData.Transfers[i]
+						txAddrDesc, err := w.chainParser.GetAddrDescFromAddress(f.From)
+						if err != nil {
+							return nil, err
+						}
+						if bytes.Equal(addrDesc, txAddrDesc) {
+							(*big.Int)(bh.SentSat).Add((*big.Int)(bh.SentSat), &f.Value)
+							if f.From == f.To {
+								(*big.Int)(bh.SentToSelfSat).Add((*big.Int)(bh.SentToSelfSat), &f.Value)
+							}
+						}
+						txAddrDesc, err = w.chainParser.GetAddrDescFromAddress(f.To)
+						if err != nil {
+							return nil, err
+						}
+						if bytes.Equal(addrDesc, txAddrDesc) {
+							(*big.Int)(bh.ReceivedSat).Add((*big.Int)(bh.ReceivedSat), &f.Value)
+						}
 					}
 				}
 			}
