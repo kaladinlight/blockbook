@@ -1,0 +1,36 @@
+{
+  "coin": {
+    "name": "Gnosis",
+    "shortcut": "xDAI",
+    "label": "Gnosis",
+    "alias": "gnosis_consensus"
+  },
+  "ports": {
+    "backend_p2p": 38375,
+    "backend_http": 8175
+  },
+  "backend": {
+    "package_name": "backend-gnosis-consensus",
+    "package_revision": "satoshilabs-1",
+    "system_user": "gnosis",
+    "version": "4.1.0",
+    "binary_url": "https://github.com/sigp/lighthouse/releases/download/v4.1.0/lighthouse-v4.1.0-x86_64-unknown-linux-gnu.tar.gz",
+    "verification_type": "gpg",
+    "verification_source": "https://github.com/sigp/lighthouse/releases/download/v4.1.0/lighthouse-v4.1.0-x86_64-unknown-linux-gnu.tar.gz.asc",
+    "extract_command": "tar -C backend --strip 1 -xf",
+    "exclude_files": [],
+    "exec_command_template": "/bin/sh -c '{{.Env.BackendInstallPath}}/{{.Coin.Alias}}/lighthouse beacon_node --network gnosis --disable-upnp --datadir {{.Env.BackendDataPath}}/{{.Coin.Alias}}/backend --port {{.Ports.BackendP2P}} --http --http-port {{.Ports.BackendHttp}} --execution-endpoint http://127.0.0.1:8574 --checkpoint-sync-url https://checkpoint.gnosischain.com/ 2>>{{.Env.BackendDataPath}}/{{.Coin.Alias}}/backend/{{.Coin.Alias}}.log'",
+    "logrotate_files_template": "{{.Env.BackendDataPath}}/{{.Coin.Alias}}/backend/{{.Coin.Alias}}.log",
+    "postinst_script_template": "",
+    "service_type": "simple",
+    "service_additional_params_template": "",
+    "protect_memory": true,
+    "mainnet": false,
+    "server_config_file": "",
+    "client_config_file": ""
+  },
+  "meta": {
+    "package_maintainer": "IT",
+    "package_maintainer_email": "it@satoshilabs.com"
+  }
+}
