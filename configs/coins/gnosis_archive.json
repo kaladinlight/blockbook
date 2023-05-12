@@ -27,7 +27,7 @@
         "verification_source": "ac75605e5fce3fd92517f008cce71f471d78501b8156e6853862e056bc9569f7",
         "extract_command": "unzip -d backend",
         "exclude_files": [],
-        "exec_command_template": "/bin/sh -c '{{.Env.BackendInstallPath}}/{{.Coin.Alias}}/Nethermind.Runner --config gnosis_archive --datadir {{.Env.BackendDataPath}}/{{.Coin.Alias}}/backend --Network.P2PPort {{.Ports.BackendP2P}} --JsonRpc.Port {{.Ports.BackendHttp}} --JsonRpc.EnabledModules \"eth,net,web3,debug,subscribe,txpool,rpc\" --Init.WebSocketsEnabled true --JsonRpc.WebSocketsPort {{.Ports.BackendRPC}} --JsonRpc.EnginePort {{.Ports.BackendAuthRpc}} 2>> {{.Env.BackendDataPath}}/{{.Coin.Alias}}/backend/{{.Coin.Alias}}.log'",
+        "exec_command_template": "/bin/sh -c '{{.Env.BackendInstallPath}}/{{.Coin.Alias}}/Nethermind.Runner --config gnosis_archive --datadir {{.Env.BackendDataPath}}/{{.Coin.Alias}}/backend --Network.P2PPort {{.Ports.BackendP2P}} --JsonRpc.Port {{.Ports.BackendHttp}} --JsonRpc.EnabledModules \"eth,net,web3,debug,subscribe,txpool,rpc\" --Init.WebSocketsEnabled true --JsonRpc.WebSocketsPort {{.Ports.BackendRPC}} --JsonRpc.EnginePort {{.Ports.BackendAuthRpc}} --JsonRpc.JwtSecretFile {{.Env.BackendDataPath}}/gnosis_archive_consensus/backend/beacon/jwt.hex 2>&1 >> {{.Env.BackendDataPath}}/{{.Coin.Alias}}/backend/{{.Coin.Alias}}.log'",
         "logrotate_files_template": "{{.Env.BackendDataPath}}/{{.Coin.Alias}}/backend/{{.Coin.Alias}}.log",
         "postinst_script_template": "",
         "service_type": "simple",
