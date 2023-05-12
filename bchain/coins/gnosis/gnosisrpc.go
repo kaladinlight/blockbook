@@ -37,7 +37,7 @@ func NewGnosisRPC(config json.RawMessage, pushHandler func(bchain.NotificationTy
 	return s, nil
 }
 
-// Initialize bnb smart chain rpc interface
+// Initialize GnosisRPC interface
 func (b *GnosisRPC) Initialize() error {
 	b.OpenRPC = func(url string) (bchain.EVMRPCClient, bchain.EVMClient, error) {
 		r, err := rpc.Dial(url)

@@ -3,7 +3,6 @@ package gnosis
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum"
@@ -34,8 +33,6 @@ func toBlockNumArg(number *big.Int) string {
 
 // HeaderByNumber returns a block header that implements the EVMHeader interface
 func (c *GnosisClient) HeaderByNumber(ctx context.Context, number *big.Int) (bchain.EVMHeader, error) {
-	fmt.Println(toBlockNumArg(number))
-
 	var raw json.RawMessage
 	err := c.GnosisRPCClient.CallContext(ctx, &raw, "eth_getBlockByNumber", toBlockNumArg(number), false)
 	if err != nil {
@@ -115,7 +112,7 @@ type GnosisNewBlock struct {
 	channel chan *Header
 }
 
-// NewGnosisNewBlock returns an initialized EthereumNewBlock struct
+// NewGnosisNewBlock returns an initialized GnosisNewBlock struct
 func NewGnosisNewBlock() *GnosisNewBlock {
 	return &GnosisNewBlock{channel: make(chan *Header)}
 }
@@ -128,7 +125,6 @@ func (s *GnosisNewBlock) Channel() interface{} {
 // Read from the underlying channel and return a block header that implements the EVMHeader interface
 func (s *GnosisNewBlock) Read() (bchain.EVMHeader, bool) {
 	h, ok := <-s.channel
-	fmt.Printf("%+v, %+v\n", h.Number.String(), h.Hash().Hex())
 	return &GnosisHeader{Header: h}, ok
 }
 
@@ -142,7 +138,7 @@ type GnosisNewTx struct {
 	channel chan common.Hash
 }
 
-// NewGnosisNewTx returns an initialized EthereumNewTx struct
+// NewGnosisNewTx returns an initialized GnosisNewTx struct
 func NewGnosisNewTx() *GnosisNewTx {
 	return &GnosisNewTx{channel: make(chan common.Hash)}
 }

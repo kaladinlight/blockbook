@@ -19,7 +19,7 @@ var hasherPool = sync.Pool{
 	New: func() interface{} { return sha3.NewLegacyKeccak256() },
 }
 
-// rlpHash encodes x and hashes the encoded bytes.
+// rlpHash encodes x and hashes the encoded bytes
 func rlpHash(x interface{}) (h common.Hash) {
 	sha := hasherPool.Get().(crypto.KeccakState)
 	defer hasherPool.Put(sha)
@@ -29,20 +29,21 @@ func rlpHash(x interface{}) (h common.Hash) {
 	return h
 }
 
+// Header represents a block header in the Gnosis blockchain
 type Header struct {
-	ParentHash  common.Hash    `json:"parentHash"       gencodec:"required"`
-	UncleHash   common.Hash    `json:"sha3Uncles"       gencodec:"required"`
+	ParentHash  common.Hash    `json:"parentHash"`
+	UncleHash   common.Hash    `json:"sha3Uncles"`
 	Coinbase    common.Address `json:"author"`
-	Root        common.Hash    `json:"stateRoot"        gencodec:"required"`
-	TxHash      common.Hash    `json:"transactionsRoot" gencodec:"required"`
-	ReceiptHash common.Hash    `json:"receiptsRoot"     gencodec:"required"`
-	Bloom       types.Bloom    `json:"logsBloom"        gencodec:"required"`
-	Difficulty  *big.Int       `json:"difficulty"       gencodec:"required"`
-	Number      *big.Int       `json:"number"           gencodec:"required"`
-	GasLimit    uint64         `json:"gasLimit"         gencodec:"required"`
-	GasUsed     uint64         `json:"gasUsed"          gencodec:"required"`
-	Time        uint64         `json:"timestamp"        gencodec:"required"`
-	Extra       []byte         `json:"extraData"        gencodec:"required"`
+	Root        common.Hash    `json:"stateRoot"`
+	TxHash      common.Hash    `json:"transactionsRoot"`
+	ReceiptHash common.Hash    `json:"receiptsRoot"`
+	Bloom       types.Bloom    `json:"logsBloom"`
+	Difficulty  *big.Int       `json:"difficulty"`
+	Number      *big.Int       `json:"number"`
+	GasLimit    uint64         `json:"gasLimit"`
+	GasUsed     uint64         `json:"gasUsed"`
+	Time        uint64         `json:"timestamp"`
+	Extra       []byte         `json:"extraData"`
 
 	MixDigest *common.Hash      `json:"mixHash" rlp:"optional"`
 	Nonce     *types.BlockNonce `json:"nonce" rlp:"optional"`
@@ -51,32 +52,32 @@ type Header struct {
 	AuraStep      *big.Int `json:"step" rlp:"optional"`
 	AuraSignature []byte   `json:"signature" rlp:"optional"`
 
-	// BaseFee was added by EIP-1559 and is ignored in legacy headers.
+	// BaseFee was added by EIP-1559 and is ignored in legacy headers
 	BaseFee *big.Int `json:"baseFeePerGas" rlp:"optional"`
 
-	// WithdrawalsHash was added by EIP-4895 and is ignored in legacy headers.
+	// WithdrawalsHash was added by EIP-4895 and is ignored in legacy headers
 	WithdrawalsHash *common.Hash `json:"withdrawalsRoot" rlp:"optional"`
 
-	// ExcessDataGas was added by EIP-4844 and is ignored in legacy headers.
+	// ExcessDataGas was added by EIP-4844 and is ignored in legacy headers
 	ExcessDataGas *big.Int `json:"excessDataGas" rlp:"optional"`
 }
 
-// MarshalJSON marshals as JSON.
+// MarshalJSON marshals as JSON
 func (h Header) MarshalJSON() ([]byte, error) {
 	type Header struct {
-		ParentHash      common.Hash       `json:"parentHash"       gencodec:"required"`
-		UncleHash       common.Hash       `json:"sha3Uncles"       gencodec:"required"`
+		ParentHash      common.Hash       `json:"parentHash"`
+		UncleHash       common.Hash       `json:"sha3Uncles"`
 		Coinbase        common.Address    `json:"author"`
-		Root            common.Hash       `json:"stateRoot"        gencodec:"required"`
-		TxHash          common.Hash       `json:"transactionsRoot" gencodec:"required"`
-		ReceiptHash     common.Hash       `json:"receiptsRoot"     gencodec:"required"`
-		Bloom           types.Bloom       `json:"logsBloom"        gencodec:"required"`
-		Difficulty      *hexutil.Big      `json:"difficulty"       gencodec:"required"`
-		Number          *hexutil.Big      `json:"number"           gencodec:"required"`
-		GasLimit        hexutil.Uint64    `json:"gasLimit"         gencodec:"required"`
-		GasUsed         hexutil.Uint64    `json:"gasUsed"          gencodec:"required"`
-		Time            hexutil.Uint64    `json:"timestamp"        gencodec:"required"`
-		Extra           hexutil.Bytes     `json:"extraData"        gencodec:"required"`
+		Root            common.Hash       `json:"stateRoot"`
+		TxHash          common.Hash       `json:"transactionsRoot"`
+		ReceiptHash     common.Hash       `json:"receiptsRoot"`
+		Bloom           types.Bloom       `json:"logsBloom"`
+		Difficulty      *hexutil.Big      `json:"difficulty"`
+		Number          *hexutil.Big      `json:"number"`
+		GasLimit        hexutil.Uint64    `json:"gasLimit"`
+		GasUsed         hexutil.Uint64    `json:"gasUsed"`
+		Time            hexutil.Uint64    `json:"timestamp"`
+		Extra           hexutil.Bytes     `json:"extraData"`
 		MixDigest       *common.Hash      `json:"mixHash" rlp:"optional"`
 		Nonce           *types.BlockNonce `json:"nonce" rlp:"optional"`
 		AuraStep        *uint64           `json:"step" rlp:"optional"`
@@ -112,22 +113,22 @@ func (h Header) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&enc)
 }
 
-// UnmarshalJSON unmarshals from JSON.
+// UnmarshalJSON unmarshals from JSON
 func (h *Header) UnmarshalJSON(input []byte) error {
 	type Header struct {
-		ParentHash      *common.Hash      `json:"parentHash"       gencodec:"required"`
-		UncleHash       *common.Hash      `json:"sha3Uncles"       gencodec:"required"`
+		ParentHash      *common.Hash      `json:"parentHash"`
+		UncleHash       *common.Hash      `json:"sha3Uncles"`
 		Coinbase        *common.Address   `json:"author"`
-		Root            *common.Hash      `json:"stateRoot"        gencodec:"required"`
-		TxHash          *common.Hash      `json:"transactionsRoot" gencodec:"required"`
-		ReceiptHash     *common.Hash      `json:"receiptsRoot"     gencodec:"required"`
-		Bloom           *types.Bloom      `json:"logsBloom"        gencodec:"required"`
-		Difficulty      *hexutil.Big      `json:"difficulty"       gencodec:"required"`
-		Number          *hexutil.Big      `json:"number"           gencodec:"required"`
-		GasLimit        *hexutil.Uint64   `json:"gasLimit"         gencodec:"required"`
-		GasUsed         *hexutil.Uint64   `json:"gasUsed"          gencodec:"required"`
-		Time            *hexutil.Uint64   `json:"timestamp"        gencodec:"required"`
-		Extra           *hexutil.Bytes    `json:"extraData"        gencodec:"required"`
+		Root            *common.Hash      `json:"stateRoot"`
+		TxHash          *common.Hash      `json:"transactionsRoot"`
+		ReceiptHash     *common.Hash      `json:"receiptsRoot"`
+		Bloom           *types.Bloom      `json:"logsBloom"`
+		Difficulty      *hexutil.Big      `json:"difficulty"`
+		Number          *hexutil.Big      `json:"number"`
+		GasLimit        *hexutil.Uint64   `json:"gasLimit"`
+		GasUsed         *hexutil.Uint64   `json:"gasUsed"`
+		Time            *hexutil.Uint64   `json:"timestamp"`
+		Extra           *hexutil.Bytes    `json:"extraData"`
 		MixDigest       *common.Hash      `json:"mixHash" rlp:"optional"`
 		Nonce           *types.BlockNonce `json:"nonce" rlp:"optional"`
 		AuraStep        *uint64           `json:"step" rlp:"optional"`
@@ -219,6 +220,7 @@ func (h *Header) UnmarshalJSON(input []byte) error {
 	return nil
 }
 
+// EncodeRLP encodes as RLP
 func (h *Header) EncodeRLP(_w io.Writer) error {
 	w := rlp.NewEncoderBuffer(_w)
 	_tmp0 := w.List()
@@ -314,6 +316,7 @@ func (h *Header) EncodeRLP(_w io.Writer) error {
 	return w.Flush()
 }
 
+// Hash returns the block hash of the header, which is simply the keccak256 hash of its RLP encoding
 func (h *Header) Hash() common.Hash {
 	return rlpHash(h)
 }
