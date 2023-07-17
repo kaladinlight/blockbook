@@ -40,10 +40,12 @@
 | BNB Smart Chain Archive          | 9165             | 9065               | 8065        | 38365 p2p, 8165 http                 |
 | Flo                              | 9166             | 9066               | 8066        | 38366                                |
 | Polis                            | 9167             | 9067               | 8067        | 38367                                |
+| Polygon                          | 9170             | 9070               | 8070        | 38370 p2p, 8170 http                 |
+| Polygon Archive                  | 9172             | 9072               | 8072        | 38372 p2p, 8172 http                 |
 | Gnosis                           | 9174             | 9074               | 8074        | 38374 p2p, 8174 http, 8574 authrpc   |
-| Gnosis Lighthouse                |                  |                    | 8075        | 38375 p2p                            |
+| Gnosis Lighthouse                | 9175             | 9075               | 8075        | 38375 p2p                            |
 | Gnosis Archive                   | 9176             | 9076               | 8076        | 38376 p2p, 8176 http, 8576 authrpc   |
-| Gnosis Archive Lighthouse        |                  |                    | 8077        | 38377 p2p                            |
+| Gnosis Archive Lighthouse        | 9177             | 9077               | 8077        | 38377 p2p                            |
 | Qtum                             | 9188             | 9088               | 8088        | 38388                                |
 | Divi Project                     | 9189             | 9089               | 8089        | 38389                                |
 | CPUchain                         | 9190             | 9090               | 8090        | 38390                                |
@@ -60,11 +62,11 @@
 | Bitcoin Regtest                  | 19121            | 19021              | 18021       | 48321                                |
 | Ethereum Testnet Goerli          | 19126            | 19026              | 18026       | 18126 http, 18526 authrpc, 48326 p2p |
 | Bitcoin Testnet                  | 19130            | 19030              | 18030       | 48330                                |
-| Bcash Testnet                    | 19131            | 19031              | 18031       | 48331                                |
+| Bitcoin Cash Testnet             | 19131            | 19031              | 18031       | 48331                                |
 | Zcash Testnet                    | 19132            | 19032              | 18032       | 48332                                |
 | Dash Testnet                     | 19133            | 19033              | 18033       | 48333                                |
 | Litecoin Testnet                 | 19134            | 19034              | 18034       | 48334                                |
-| Bgold Testnet                    | 19135            | 19035              | 18035       | 48335                                |
+| Bitcoin Gold Testnet             | 19135            | 19035              | 18035       | 48335                                |
 | Dogecoin Testnet                 | 19138            | 19038              | 18038       | 48338                                |
 | Vertcoin Testnet                 | 19140            | 19040              | 18040       | 48340                                |
 | Monacoin Testnet                 | 19141            | 19041              | 18041       | 48341                                |

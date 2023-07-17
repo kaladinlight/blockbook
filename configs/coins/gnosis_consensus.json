@@ -7,7 +7,9 @@
   },
   "ports": {
     "backend_p2p": 38375,
-    "backend_rpc": 8075
+    "backend_rpc": 8075,
+    "blockbook_public": 9175,
+    "blockbook_internal": 9075
   },
   "backend": {
     "package_name": "backend-gnosis-lighthouse",
