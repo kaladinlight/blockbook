@@ -2,12 +2,10 @@ package gnosis
 
 import (
 	"context"
-	"encoding/json"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/juju/errors"
@@ -20,31 +18,14 @@ type GnosisClient struct {
 	*GnosisRPCClient
 }
 
-func toBlockNumArg(number *big.Int) string {
-	if number == nil {
-		return "latest"
-	}
-	pending := big.NewInt(-1)
-	if number.Cmp(pending) == 0 {
-		return "pending"
-	}
-	return hexutil.EncodeBig(number)
-}
-
 // HeaderByNumber returns a block header that implements the EVMHeader interface
 func (c *GnosisClient) HeaderByNumber(ctx context.Context, number *big.Int) (bchain.EVMHeader, error) {
-	var raw json.RawMessage
-	err := c.GnosisRPCClient.CallContext(ctx, &raw, "eth_getBlockByNumber", toBlockNumArg(number), false)
+	h := &Header{}
+	err := c.GnosisRPCClient.CallContext(ctx, h, "eth_getBlockByNumber", ToBlockNumArg(number), false)
 	if err != nil {
-		return nil, err
-	}
-
-	var h Header
-	if err := json.Unmarshal(raw, &h); err != nil {
 		return nil, errors.Annotatef(err, "number %v", number)
 	}
-
-	return &GnosisHeader{Header: &h}, nil
+	return &GnosisHeader{Header: h}, nil
 }
 
 // EstimateGas returns the current estimated gas cost for executing a transaction
