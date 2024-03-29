@@ -33,7 +33,7 @@ func rlpHash(x interface{}) (h common.Hash) {
 type Header struct {
 	ParentHash  common.Hash    `json:"parentHash"`
 	UncleHash   common.Hash    `json:"sha3Uncles"`
-	Coinbase    common.Address `json:"author"`
+	Coinbase    common.Address `json:"miner"`
 	Root        common.Hash    `json:"stateRoot"`
 	TxHash      common.Hash    `json:"transactionsRoot"`
 	ReceiptHash common.Hash    `json:"receiptsRoot"`
@@ -58,34 +58,42 @@ type Header struct {
 	// WithdrawalsHash was added by EIP-4895 and is ignored in legacy headers
 	WithdrawalsHash *common.Hash `json:"withdrawalsRoot" rlp:"optional"`
 
-	// ExcessDataGas was added by EIP-4844 and is ignored in legacy headers
-	ExcessDataGas *big.Int `json:"excessDataGas" rlp:"optional"`
+	// BlobGasUsed was added by EIP-4844 and is ignored in legacy headers.
+	BlobGasUsed *uint64 `json:"blobGasUsed" rlp:"optional"`
+
+	// ExcessBlobGas was added by EIP-4844 and is ignored in legacy headers.
+	ExcessBlobGas *uint64 `json:"excessBlobGas" rlp:"optional"`
+
+	// ParentBeaconRoot was added by EIP-4788 and is ignored in legacy headers.
+	ParentBeaconRoot *common.Hash `json:"parentBeaconBlockRoot" rlp:"optional"`
 }
 
 // MarshalJSON marshals as JSON
 func (h Header) MarshalJSON() ([]byte, error) {
 	type Header struct {
-		ParentHash      common.Hash       `json:"parentHash"`
-		UncleHash       common.Hash       `json:"sha3Uncles"`
-		Coinbase        common.Address    `json:"author"`
-		Root            common.Hash       `json:"stateRoot"`
-		TxHash          common.Hash       `json:"transactionsRoot"`
-		ReceiptHash     common.Hash       `json:"receiptsRoot"`
-		Bloom           types.Bloom       `json:"logsBloom"`
-		Difficulty      *hexutil.Big      `json:"difficulty"`
-		Number          *hexutil.Big      `json:"number"`
-		GasLimit        hexutil.Uint64    `json:"gasLimit"`
-		GasUsed         hexutil.Uint64    `json:"gasUsed"`
-		Time            hexutil.Uint64    `json:"timestamp"`
-		Extra           hexutil.Bytes     `json:"extraData"`
-		MixDigest       *common.Hash      `json:"mixHash" rlp:"optional"`
-		Nonce           *types.BlockNonce `json:"nonce" rlp:"optional"`
-		AuraStep        *uint64           `json:"step" rlp:"optional"`
-		AuraSignature   hexutil.Bytes     `json:"signature" rlp:"optional"`
-		BaseFee         *hexutil.Big      `json:"baseFeePerGas" rlp:"optional"`
-		WithdrawalsHash *common.Hash      `json:"withdrawalsRoot" rlp:"optional"`
-		ExcessDataGas   *hexutil.Big      `json:"excessDataGas" rlp:"optional"`
-		Hash            common.Hash       `json:"hash"`
+		ParentHash       common.Hash       `json:"parentHash"`
+		UncleHash        common.Hash       `json:"sha3Uncles"`
+		Coinbase         common.Address    `json:"miner"`
+		Root             common.Hash       `json:"stateRoot"`
+		TxHash           common.Hash       `json:"transactionsRoot"`
+		ReceiptHash      common.Hash       `json:"receiptsRoot"`
+		Bloom            types.Bloom       `json:"logsBloom"`
+		Difficulty       *hexutil.Big      `json:"difficulty"`
+		Number           *hexutil.Big      `json:"number"`
+		GasLimit         hexutil.Uint64    `json:"gasLimit"`
+		GasUsed          hexutil.Uint64    `json:"gasUsed"`
+		Time             hexutil.Uint64    `json:"timestamp"`
+		Extra            hexutil.Bytes     `json:"extraData"`
+		MixDigest        *common.Hash      `json:"mixHash" rlp:"optional"`
+		Nonce            *types.BlockNonce `json:"nonce" rlp:"optional"`
+		AuraStep         *uint64           `json:"step" rlp:"optional"`
+		AuraSignature    hexutil.Bytes     `json:"signature" rlp:"optional"`
+		BaseFee          *hexutil.Big      `json:"baseFeePerGas" rlp:"optional"`
+		WithdrawalsHash  *common.Hash      `json:"withdrawalsRoot" rlp:"optional"`
+		BlobGasUsed      *hexutil.Uint64   `json:"blobGasUsed" rlp:"optional"`
+		ExcessBlobGas    *hexutil.Uint64   `json:"excessBlobGas" rlp:"optional"`
+		ParentBeaconRoot *common.Hash      `json:"parentBeaconBlockRoot" rlp:"optional"`
+		Hash             common.Hash       `json:"hash"`
 	}
 	var enc Header
 	enc.ParentHash = h.ParentHash
@@ -108,7 +116,9 @@ func (h Header) MarshalJSON() ([]byte, error) {
 	enc.AuraSignature = h.AuraSignature
 	enc.BaseFee = (*hexutil.Big)(h.BaseFee)
 	enc.WithdrawalsHash = h.WithdrawalsHash
-	enc.ExcessDataGas = (*hexutil.Big)(h.ExcessDataGas)
+	enc.BlobGasUsed = (*hexutil.Uint64)(h.BlobGasUsed)
+	enc.ExcessBlobGas = (*hexutil.Uint64)(h.ExcessBlobGas)
+	enc.ParentBeaconRoot = h.ParentBeaconRoot
 	enc.Hash = h.Hash()
 	return json.Marshal(&enc)
 }
@@ -116,26 +126,28 @@ func (h Header) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON unmarshals from JSON
 func (h *Header) UnmarshalJSON(input []byte) error {
 	type Header struct {
-		ParentHash      *common.Hash      `json:"parentHash"`
-		UncleHash       *common.Hash      `json:"sha3Uncles"`
-		Coinbase        *common.Address   `json:"author"`
-		Root            *common.Hash      `json:"stateRoot"`
-		TxHash          *common.Hash      `json:"transactionsRoot"`
-		ReceiptHash     *common.Hash      `json:"receiptsRoot"`
-		Bloom           *types.Bloom      `json:"logsBloom"`
-		Difficulty      *hexutil.Big      `json:"difficulty"`
-		Number          *hexutil.Big      `json:"number"`
-		GasLimit        *hexutil.Uint64   `json:"gasLimit"`
-		GasUsed         *hexutil.Uint64   `json:"gasUsed"`
-		Time            *hexutil.Uint64   `json:"timestamp"`
-		Extra           *hexutil.Bytes    `json:"extraData"`
-		MixDigest       *common.Hash      `json:"mixHash" rlp:"optional"`
-		Nonce           *types.BlockNonce `json:"nonce" rlp:"optional"`
-		AuraStep        *uint64           `json:"step" rlp:"optional"`
-		AuraSignature   *hexutil.Bytes    `json:"signature" rlp:"optional"`
-		BaseFee         *hexutil.Big      `json:"baseFeePerGas" rlp:"optional"`
-		WithdrawalsHash *common.Hash      `json:"withdrawalsRoot" rlp:"optional"`
-		ExcessDataGas   *hexutil.Big      `json:"excessDataGas" rlp:"optional"`
+		ParentHash       *common.Hash      `json:"parentHash"`
+		UncleHash        *common.Hash      `json:"sha3Uncles"`
+		Coinbase         *common.Address   `json:"miner"`
+		Root             *common.Hash      `json:"stateRoot"`
+		TxHash           *common.Hash      `json:"transactionsRoot"`
+		ReceiptHash      *common.Hash      `json:"receiptsRoot"`
+		Bloom            *types.Bloom      `json:"logsBloom"`
+		Difficulty       *hexutil.Big      `json:"difficulty"`
+		Number           *hexutil.Big      `json:"number"`
+		GasLimit         *hexutil.Uint64   `json:"gasLimit"`
+		GasUsed          *hexutil.Uint64   `json:"gasUsed"`
+		Time             *hexutil.Uint64   `json:"timestamp"`
+		Extra            *hexutil.Bytes    `json:"extraData"`
+		MixDigest        *common.Hash      `json:"mixHash" rlp:"optional"`
+		Nonce            *types.BlockNonce `json:"nonce" rlp:"optional"`
+		AuraStep         *uint64           `json:"step" rlp:"optional"`
+		AuraSignature    *hexutil.Bytes    `json:"signature" rlp:"optional"`
+		BaseFee          *hexutil.Big      `json:"baseFeePerGas" rlp:"optional"`
+		WithdrawalsHash  *common.Hash      `json:"withdrawalsRoot" rlp:"optional"`
+		BlobGasUsed      *hexutil.Uint64   `json:"blobGasUsed" rlp:"optional"`
+		ExcessBlobGas    *hexutil.Uint64   `json:"excessBlobGas" rlp:"optional"`
+		ParentBeaconRoot *common.Hash      `json:"parentBeaconBlockRoot" rlp:"optional"`
 	}
 	var dec Header
 	if err := json.Unmarshal(input, &dec); err != nil {
@@ -214,8 +226,14 @@ func (h *Header) UnmarshalJSON(input []byte) error {
 	if dec.WithdrawalsHash != nil {
 		h.WithdrawalsHash = dec.WithdrawalsHash
 	}
-	if dec.ExcessDataGas != nil {
-		h.ExcessDataGas = (*big.Int)(dec.ExcessDataGas)
+	if dec.BlobGasUsed != nil {
+		h.BlobGasUsed = (*uint64)(dec.BlobGasUsed)
+	}
+	if dec.ExcessBlobGas != nil {
+		h.ExcessBlobGas = (*uint64)(dec.ExcessBlobGas)
+	}
+	if dec.ParentBeaconRoot != nil {
+		h.ParentBeaconRoot = dec.ParentBeaconRoot
 	}
 	return nil
 }
@@ -251,7 +269,7 @@ func (h *Header) EncodeRLP(_w io.Writer) error {
 	w.WriteUint64(h.GasUsed)
 	w.WriteUint64(h.Time)
 	w.WriteBytes(h.Extra)
-	_tmp1 := h.AuraSignature != nil
+	_tmp1 := len(h.AuraSignature) > 0
 	_tmp2 := h.AuraStep != nil
 	if _tmp1 || _tmp2 {
 		if h.AuraStep == nil {
@@ -262,11 +280,7 @@ func (h *Header) EncodeRLP(_w io.Writer) error {
 			}
 			w.WriteBigInt(h.AuraStep)
 		}
-		if h.AuraSignature == nil {
-			_, _ = w.Write(rlp.EmptyString)
-		} else {
-			w.WriteBytes(h.AuraSignature[:])
-		}
+		w.WriteBytes(h.AuraSignature[:])
 	}
 	_tmp3 := h.MixDigest != nil
 	_tmp4 := h.Nonce != nil
@@ -284,7 +298,10 @@ func (h *Header) EncodeRLP(_w io.Writer) error {
 	}
 	_tmp5 := h.BaseFee != nil
 	_tmp6 := h.WithdrawalsHash != nil
-	if _tmp5 || _tmp6 {
+	_tmp7 := h.BlobGasUsed != nil
+	_tmp8 := h.ExcessBlobGas != nil
+	_tmp9 := h.ParentBeaconRoot != nil
+	if _tmp5 || _tmp6 || _tmp7 || _tmp8 || _tmp9 {
 		if h.BaseFee == nil {
 			_, _ = w.Write(rlp.EmptyString)
 		} else {
@@ -294,22 +311,32 @@ func (h *Header) EncodeRLP(_w io.Writer) error {
 			w.WriteBigInt(h.BaseFee)
 		}
 	}
-	if _tmp6 {
+	if _tmp6 || _tmp7 || _tmp8 || _tmp9 {
 		if h.WithdrawalsHash == nil {
 			_, _ = w.Write([]byte{0x80})
 		} else {
 			w.WriteBytes(h.WithdrawalsHash[:])
 		}
 	}
-	_tmp7 := h.ExcessDataGas != nil
-	if _tmp7 {
-		if h.ExcessDataGas == nil {
-			_, _ = w.Write(rlp.EmptyString)
+	if _tmp7 || _tmp8 || _tmp9 {
+		if h.BlobGasUsed == nil {
+			_, _ = w.Write([]byte{0x80})
 		} else {
-			if h.ExcessDataGas.Sign() == -1 {
-				return rlp.ErrNegativeBigInt
-			}
-			w.WriteBigInt(h.ExcessDataGas)
+			w.WriteUint64((*h.BlobGasUsed))
+		}
+	}
+	if _tmp8 || _tmp9 {
+		if h.ExcessBlobGas == nil {
+			_, _ = w.Write([]byte{0x80})
+		} else {
+			w.WriteUint64((*h.ExcessBlobGas))
+		}
+	}
+	if _tmp9 {
+		if h.ParentBeaconRoot == nil {
+			_, _ = w.Write([]byte{0x80})
+		} else {
+			w.WriteBytes(h.ParentBeaconRoot[:])
 		}
 	}
 	w.ListEnd(_tmp0)
