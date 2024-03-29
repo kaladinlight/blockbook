@@ -30,8 +30,6 @@ type Network uint32
 const (
 	// MainNet is production network
 	MainNet Network = 1
-	// TestNetGoerli is Goerli test network
-	TestNetGoerli Network = 5
 	// TestNetSepolia is Sepolia test network
 	TestNetSepolia Network = 11155111
 	// TestNetHolesky is Holesky test network
@@ -74,6 +72,9 @@ type EthereumRPC struct {
 	NewTx                   bchain.EVMNewTxSubscriber
 	newTxSubscription       bchain.EVMClientSubscription
 	ChainConfig             *Configuration
+	supportedStakingPools   []string
+	stakingPoolNames        []string
+	stakingPoolContracts    []string
 }
 
 // ProcessInternalTransactions specifies if internal transactions are processed
@@ -146,9 +147,6 @@ func (b *EthereumRPC) Initialize() error {
 	case MainNet:
 		b.Testnet = false
 		b.Network = "livenet"
-	case TestNetGoerli:
-		b.Testnet = true
-		b.Network = "goerli"
 	case TestNetSepolia:
 		b.Testnet = true
 		b.Network = "sepolia"
@@ -158,6 +156,12 @@ func (b *EthereumRPC) Initialize() error {
 	default:
 		return errors.Errorf("Unknown network id %v", id)
 	}
+
+	err = b.initStakingPools(b.ChainConfig.CoinShortcut)
+	if err != nil {
+		return err
+	}
+
 	glog.Info("rpc: block chain ", b.Network)
 
 	return nil

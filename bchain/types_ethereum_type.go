@@ -146,3 +146,16 @@ type EthereumBlockSpecificData struct {
 	AddressAliasRecords []AddressAliasRecord
 	Contracts           []ContractInfo
 }
+
+// StakingPool holds data about address participation in a staking pool contract
+type StakingPoolData struct {
+	Contract                string  `json:"contract"`
+	Name                    string  `json:"name"`
+	PendingBalance          big.Int `json:"pendingBalance"`          // pendingBalanceOf method
+	PendingDepositedBalance big.Int `json:"pendingDepositedBalance"` // pendingDepositedBalanceOf method
+	DepositedBalance        big.Int `json:"depositedBalance"`        // depositedBalanceOf method
+	WithdrawTotalAmount     big.Int `json:"withdrawTotalAmount"`     // withdrawRequest method, return value [0]
+	ClaimableAmount         big.Int `json:"claimableAmount"`         // withdrawRequest method, return value [1]
+	RestakedReward          big.Int `json:"restakedReward"`          // restakedRewardOf method
+	AutocompoundBalance     big.Int `json:"autocompoundBalance"`     // autocompoundBalanceOf method
+}

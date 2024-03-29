@@ -23,10 +23,10 @@
         "package_name": "backend-ethereum-testnet-holesky-archive",
         "package_revision": "satoshilabs-1",
         "system_user": "ethereum",
-        "version": "2.57.0",
-        "binary_url": "https://github.com/ledgerwatch/erigon/releases/download/v2.57.0/erigon_2.57.0_linux_amd64.tar.gz",
+        "version": "2.59.1",
+        "binary_url": "https://github.com/ledgerwatch/erigon/releases/download/v2.59.1/erigon_2.59.1_linux_amd64.tar.gz",
         "verification_type": "sha256",
-        "verification_source": "6efa0477af314c4bd752ad119d39444154a5bc7c78695509f888aea58b305dff",
+        "verification_source": "5800f0da3ec52f8abc414860f4b3c9ac8c46d07c5044b5458820c71fd4b95b38",
         "extract_command": "tar -C backend -xf",
         "exclude_files": [],
         "exec_command_template": "/bin/sh -c '{{.Env.BackendInstallPath}}/{{.Coin.Alias}}/erigon --chain holesky --snap.keepblocks --db.size.limit 15TB --prune c --prune.c.older 1000000 -torrent.download.rate 32mb --nat none --datadir {{.Env.BackendDataPath}}/{{.Coin.Alias}}/backend/erigon --port {{.Ports.BackendP2P}} --ws --ws.port {{.Ports.BackendRPC}} --http --http.port {{.Ports.BackendRPC}} --http.addr 127.0.0.1 --http.corsdomain \"*\" --http.vhosts \"*\" --http.api \"eth,net,web3,debug,txpool\" --authrpc.port {{.Ports.BackendAuthRpc}} --private.api.addr \"\" --torrent.port {{.Ports.BackendHttp}} --log.dir.path {{.Env.BackendDataPath}}/{{.Coin.Alias}}/backend --log.dir.prefix {{.Coin.Alias}}'",
@@ -40,8 +40,8 @@
         "client_config_file": "",
         "platforms": {
             "arm64": {
-                "binary_url": "https://github.com/ledgerwatch/erigon/releases/download/v2.57.0/erigon_2.57.0_linux_arm64.tar.gz",
-                "verification_source": "d7288276bce563e59e729803ab8fc821f853de2df4c3f13b8ef4e3a69db79019"
+                "binary_url": "https://github.com/ledgerwatch/erigon/releases/download/v2.59.1/erigon_2.59.1_linux_arm64.tar.gz",
+                "verification_source": "9d29e04f600111971c56a9c48aa5c7c9e81cd61ad8bb042c240505e4bd93bf88"
             }
         }
     },
