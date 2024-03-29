@@ -309,14 +309,6 @@ func mainWithExitCode() int {
 	if *synchronize {
 		internalState.SyncMode = true
 		internalState.InitialSync = true
-		if err := syncWorker.ResyncIndex(nil, true); err != nil {
-			if err != db.ErrOperationInterrupted {
-				glog.Error("resyncIndex ", err)
-				return exitCodeFatal
-			}
-			return exitCodeOK
-		}
-		// initialize mempool after the initial sync is complete
 		var addrDescForOutpoint bchain.AddrDescForOutpointFunc
 		if chain.GetChainParser().GetChainType() == bchain.ChainBitcoinType {
 			addrDescForOutpoint = index.AddrDescForOutpoint
@@ -332,8 +324,15 @@ func mainWithExitCode() int {
 			return exitCodeFatal
 		}
 		internalState.FinishedMempoolSync(mempoolCount)
-		go syncIndexLoop()
 		go syncMempoolLoop()
+		if err := syncWorker.ResyncIndex(nil, true); err != nil {
+			if err != db.ErrOperationInterrupted {
+				glog.Error("resyncIndex ", err)
+				return exitCodeFatal
+			}
+			return exitCodeOK
+		}
+		go syncIndexLoop()
 		internalState.InitialSync = false
 	}
 	go storeInternalStateLoop()
