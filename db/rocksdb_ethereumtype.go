@@ -10,6 +10,7 @@ import (
 
 	vlq "github.com/bsm/go-vlq"
 	"github.com/golang/glog"
+	"github.com/golang/protobuf/proto"
 	"github.com/juju/errors"
 	"github.com/linxGnu/grocksdb"
 	"github.com/trezor/blockbook/bchain"
@@ -124,100 +125,75 @@ type AddrContracts struct {
 	Contracts      []AddrContract
 }
 
-// packAddrContract packs AddrContracts into a byte buffer
-func packAddrContracts(acs *AddrContracts) []byte {
-	buf := make([]byte, 0, 128)
-	varBuf := make([]byte, maxPackedBigintBytes)
-	l := packVaruint(acs.TotalTxs, varBuf)
-	buf = append(buf, varBuf[:l]...)
-	l = packVaruint(acs.NonContractTxs, varBuf)
-	buf = append(buf, varBuf[:l]...)
-	l = packVaruint(acs.InternalTxs, varBuf)
-	buf = append(buf, varBuf[:l]...)
-	for _, ac := range acs.Contracts {
-		buf = append(buf, ac.Contract...)
-		l = packVaruint(uint(ac.Type)+ac.Txs<<2, varBuf)
-		buf = append(buf, varBuf[:l]...)
-		if ac.Type == bchain.FungibleToken {
-			l = packBigint(&ac.Value, varBuf)
-			buf = append(buf, varBuf[:l]...)
-		} else if ac.Type == bchain.NonFungibleToken {
-			l = packVaruint(uint(len(ac.Ids)), varBuf)
-			buf = append(buf, varBuf[:l]...)
-			for i := range ac.Ids {
-				l = packBigint(&ac.Ids[i], varBuf)
-				buf = append(buf, varBuf[:l]...)
-			}
-		} else { // bchain.ERC1155
-			l = packVaruint(uint(len(ac.MultiTokenValues)), varBuf)
-			buf = append(buf, varBuf[:l]...)
-			for i := range ac.MultiTokenValues {
-				l = packBigint(&ac.MultiTokenValues[i].Id, varBuf)
-				buf = append(buf, varBuf[:l]...)
-				l = packBigint(&ac.MultiTokenValues[i].Value, varBuf)
-				buf = append(buf, varBuf[:l]...)
+// packAddrContract packs AddrContracts into a protobuf encoded byte slice
+func packAddrContracts(acs *AddrContracts) ([]byte, error) {
+	ptContracts := make([]*eth.ProtoAddrContracts_AddrContract, len(acs.Contracts))
+	for i, c := range acs.Contracts {
+		ptIds := make([][]byte, len(c.Ids))
+		for j, id := range c.Ids {
+			ptIds[j] = id.Bytes()
+		}
+		ptMultiTokenValues := make([]*eth.ProtoAddrContracts_MultiTokenValue, len(c.MultiTokenValues))
+		for k, mtv := range c.MultiTokenValues {
+			ptMultiTokenValues[k] = &eth.ProtoAddrContracts_MultiTokenValue{
+				Id:    mtv.Id.Bytes(),
+				Value: mtv.Value.Bytes(),
 			}
 		}
+		ptContracts[i] = &eth.ProtoAddrContracts_AddrContract{
+			Contract:         c.Contract,
+			Ids:              ptIds,
+			MultiTokenValues: ptMultiTokenValues,
+			Type:             int64(c.Type),
+			Txs:              uint64(c.Txs),
+			Value:            c.Value.Bytes(),
+		}
 	}
-	return buf
+	pt := &eth.ProtoAddrContracts{
+		TotalTxs:       uint64(acs.TotalTxs),
+		InternalTxs:    uint64(acs.InternalTxs),
+		NonContractTxs: uint64(acs.NonContractTxs),
+		Contracts:      ptContracts,
+	}
+	return proto.Marshal(pt)
 }
 
+// unpackAddrContract unpacks the protobuf encoded byte slice into AddrContracts
 func unpackAddrContracts(buf []byte, addrDesc bchain.AddressDescriptor) (*AddrContracts, error) {
-	tt, l := unpackVaruint(buf)
-	buf = buf[l:]
-	nct, l := unpackVaruint(buf)
-	buf = buf[l:]
-	ict, l := unpackVaruint(buf)
-	buf = buf[l:]
-	c := make([]AddrContract, 0, 4)
-	for len(buf) > 0 {
-		if len(buf) < eth.EthereumTypeAddressDescriptorLen {
-			return nil, errors.New("Invalid data stored in cfAddressContracts for AddrDesc " + addrDesc.String())
+	pt := &eth.ProtoAddrContracts{}
+	err := proto.Unmarshal(buf, pt)
+	if err != nil {
+		return nil, errors.New("Invalid data stored in cfAddressContracts for AddrDesc " + addrDesc.String())
+	}
+	contracts := make([]AddrContract, len(pt.Contracts))
+	for i, c := range pt.Contracts {
+		ids := make([]big.Int, len(c.Ids))
+		for j, id := range c.Ids {
+			ids[j] = *new(big.Int).SetBytes(id)
 		}
-		contract := append(bchain.AddressDescriptor(nil), buf[:eth.EthereumTypeAddressDescriptorLen]...)
-		txs, l := unpackVaruint(buf[eth.EthereumTypeAddressDescriptorLen:])
-		buf = buf[eth.EthereumTypeAddressDescriptorLen+l:]
-		ttt := bchain.TokenType(txs & 3)
-		txs >>= 2
-		ac := AddrContract{
-			Type:     ttt,
-			Contract: contract,
-			Txs:      txs,
-		}
-		if ttt == bchain.FungibleToken {
-			b, ll := unpackBigint(buf)
-			buf = buf[ll:]
-			ac.Value = b
-		} else {
-			len, ll := unpackVaruint(buf)
-			buf = buf[ll:]
-			if ttt == bchain.NonFungibleToken {
-				ac.Ids = make(Ids, len)
-				for i := uint(0); i < len; i++ {
-					b, ll := unpackBigint(buf)
-					buf = buf[ll:]
-					ac.Ids[i] = b
-				}
-			} else {
-				ac.MultiTokenValues = make(MultiTokenValues, len)
-				for i := uint(0); i < len; i++ {
-					b, ll := unpackBigint(buf)
-					buf = buf[ll:]
-					ac.MultiTokenValues[i].Id = b
-					b, ll = unpackBigint(buf)
-					buf = buf[ll:]
-					ac.MultiTokenValues[i].Value = b
-				}
+		multiTokenValues := make(MultiTokenValues, len(c.MultiTokenValues))
+		for k, mtv := range c.MultiTokenValues {
+			multiTokenValues[k] = bchain.MultiTokenValue{
+				Id:    *new(big.Int).SetBytes(mtv.Id),
+				Value: *new(big.Int).SetBytes(mtv.Value),
 			}
 		}
-		c = append(c, ac)
+		contracts[i] = AddrContract{
+			Type:             bchain.TokenType(c.Type),
+			Contract:         c.Contract,
+			Txs:              uint(c.Txs),
+			Value:            *new(big.Int).SetBytes(c.Value),
+			Ids:              ids,
+			MultiTokenValues: multiTokenValues,
+		}
 	}
-	return &AddrContracts{
-		TotalTxs:       tt,
-		NonContractTxs: nct,
-		InternalTxs:    ict,
-		Contracts:      c,
-	}, nil
+	acs := &AddrContracts{
+		TotalTxs:       uint(pt.TotalTxs),
+		NonContractTxs: uint(pt.NonContractTxs),
+		InternalTxs:    uint(pt.InternalTxs),
+		Contracts:      contracts,
+	}
+	return acs, nil
 }
 
 func (d *RocksDB) storeAddressContracts(wb *grocksdb.WriteBatch, acm map[string]*AddrContracts) error {
@@ -226,7 +202,10 @@ func (d *RocksDB) storeAddressContracts(wb *grocksdb.WriteBatch, acm map[string]
 		if acs == nil || (acs.NonContractTxs == 0 && acs.InternalTxs == 0 && len(acs.Contracts) == 0) {
 			wb.DeleteCF(d.cfh[cfAddressContracts], bchain.AddressDescriptor(addrDesc))
 		} else {
-			buf := packAddrContracts(acs)
+			buf, err := packAddrContracts(acs)
+			if err != nil {
+				return err
+			}
 			wb.PutCF(d.cfh[cfAddressContracts], bchain.AddressDescriptor(addrDesc), buf)
 		}
 	}
@@ -1439,7 +1418,10 @@ func (d *RocksDB) SortAddressContracts(stop chan os.Signal) error {
 				if err := func() error {
 					wb := grocksdb.NewWriteBatch()
 					defer wb.Destroy()
-					buf := packAddrContracts(ca)
+					buf, err := packAddrContracts(ca)
+					if err != nil {
+						return err
+					}
 					wb.PutCF(d.cfh[cfAddressContracts], addrDesc, buf)
 					return d.WriteBatch(wb)
 				}(); err != nil {
