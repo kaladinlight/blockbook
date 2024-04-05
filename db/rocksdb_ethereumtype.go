@@ -169,7 +169,7 @@ func unpackAddrContracts(buf []byte, addrDesc bchain.AddressDescriptor) (*AddrCo
 	buf = buf[l:]
 	ict, l := unpackVaruint(buf)
 	buf = buf[l:]
-	c := make([]AddrContract, 0, 4)
+	c := make([]AddrContract, 0, 10)
 	for len(buf) > 0 {
 		if len(buf) < eth.EthereumTypeAddressDescriptorLen {
 			return nil, errors.New("Invalid data stored in cfAddressContracts for AddrDesc " + addrDesc.String())
@@ -216,7 +216,7 @@ func unpackAddrContracts(buf []byte, addrDesc bchain.AddressDescriptor) (*AddrCo
 		TotalTxs:       tt,
 		NonContractTxs: nct,
 		InternalTxs:    ict,
-		Contracts:      c,
+		Contracts:      c[:len(c)],
 	}, nil
 }
 
