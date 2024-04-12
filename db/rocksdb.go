@@ -72,6 +72,7 @@ type RocksDB struct {
 	maxOpenFiles     int
 	cbs              connectBlockStats
 	extendedIndex    bool
+	maxAddrContracts int
 	addressContracts map[string]*AddrContracts
 }
 
@@ -98,10 +99,6 @@ const (
 
 	// TODO move to common section
 	cfAddressAliases
-)
-
-const (
-	maxAddrContracts = 1200000
 )
 
 // common columns
@@ -134,7 +131,7 @@ func openDB(path string, c *grocksdb.Cache, openFiles int) (*grocksdb.DB, []*gro
 
 // NewRocksDB opens an internal handle to RocksDB environment.  Close
 // needs to be called to release it.
-func NewRocksDB(path string, cacheSize, maxOpenFiles int, parser bchain.BlockChainParser, metrics *common.Metrics, extendedIndex bool) (*RocksDB, error) {
+func NewRocksDB(path string, cacheSize, maxOpenFiles int, parser bchain.BlockChainParser, metrics *common.Metrics, extendedIndex bool, maxAddrContracts int) (*RocksDB, error) {
 	glog.Infof("rocksdb: opening %s, required data version %v, cache size %v, max open files %v", path, dbVersion, cacheSize, maxOpenFiles)
 
 	cfNames = append([]string{}, cfBaseNames...)
@@ -166,6 +163,7 @@ func NewRocksDB(path string, cacheSize, maxOpenFiles int, parser bchain.BlockCha
 		maxOpenFiles:     maxOpenFiles,
 		cbs:              connectBlockStats{},
 		extendedIndex:    extendedIndex,
+		maxAddrContracts: maxAddrContracts,
 		addressContracts: make(map[string]*AddrContracts),
 	}
 	return d, nil
@@ -354,7 +352,7 @@ func (d *RocksDB) pruneAddressContracts(attempt float64) {
 	pruned := 0
 	threshold := math.Pow(10, attempt)
 	for k, v := range d.addressContracts {
-		if pruned >= (maxAddrContracts / 10) {
+		if pruned >= (d.maxAddrContracts / 10) {
 			break
 		}
 		if len(v.Contracts) < int(threshold) {
@@ -411,7 +409,7 @@ func (d *RocksDB) ConnectBlock(block *bchain.Block) error {
 			}
 		}
 	} else if chainType == bchain.ChainEthereumType {
-		if len(d.addressContracts) > maxAddrContracts {
+		if len(d.addressContracts) > d.maxAddrContracts {
 			d.pruneAddressContracts(1)
 		}
 		addressContracts := make(map[string]*AddrContracts)

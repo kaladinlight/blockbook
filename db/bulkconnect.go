@@ -270,7 +270,7 @@ func (b *BulkConnect) storeAddressContracts(wb *grocksdb.WriteBatch, all bool) (
 		for k, a := range b.d.addressContracts {
 			ac[k] = a
 			delete(b.d.addressContracts, k)
-			if len(ac) >= (maxAddrContracts / 10) {
+			if len(ac) >= (b.d.maxAddrContracts / 10) {
 				break
 			}
 		}
@@ -308,7 +308,7 @@ func (b *BulkConnect) connectBlockEthereumType(block *bchain.Block, storeBlockTx
 	b.ethBlockTxs = append(b.ethBlockTxs, blockTxs...)
 	var storeAddrContracts chan error
 	var sa bool
-	if len(b.d.addressContracts) > maxAddrContracts {
+	if len(b.d.addressContracts) > b.d.maxAddrContracts {
 		sa = true
 		storeAddrContracts = make(chan error)
 		go b.parallelStoreAddressContracts(storeAddrContracts, false)
