@@ -338,7 +338,7 @@ func addToContract(c *AddrContract, contractIndex int, index int32, contract bch
 func (d *RocksDB) addToAddressesAndContractsEthereumType(addrDesc bchain.AddressDescriptor, btxID []byte, index int32, contract bchain.AddressDescriptor, transfer *bchain.TokenTransfer, addTxCount bool, addresses addressesMap, addressContracts map[string]*AddrContracts) error {
 	var err error
 	strAddrDesc := string(addrDesc)
-	ac, e := addressContracts[strAddrDesc]
+	ac, e := d.addressContracts[strAddrDesc]
 	if !e {
 		ac, err = d.GetAddrDescContracts(addrDesc)
 		if err != nil {
@@ -348,6 +348,7 @@ func (d *RocksDB) addToAddressesAndContractsEthereumType(addrDesc bchain.Address
 			ac = &AddrContracts{}
 		}
 		addressContracts[strAddrDesc] = ac
+		d.addressContracts[strAddrDesc] = ac
 		d.cbs.balancesMiss++
 	} else {
 		d.cbs.balancesHit++
