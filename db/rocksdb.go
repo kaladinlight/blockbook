@@ -349,18 +349,17 @@ const (
 )
 
 func (d *RocksDB) pruneAddressContracts(attempt float64) {
-	pruned := 0
+	desiredSize := d.maxAddrContracts / 2
 	threshold := math.Pow(10, attempt)
 	for k, v := range d.addressContracts {
-		if pruned >= (d.maxAddrContracts / 10) {
+		if len(d.addressContracts) == desiredSize {
 			break
 		}
 		if len(v.Contracts) < int(threshold) {
 			delete(d.addressContracts, k)
-			pruned++
 		}
 	}
-	if pruned == 0 {
+	if len(d.addressContracts) > desiredSize {
 		d.pruneAddressContracts(attempt + 1)
 	}
 }
