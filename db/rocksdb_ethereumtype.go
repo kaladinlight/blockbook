@@ -133,6 +133,7 @@ func packAddrContracts(acs *AddrContracts) ([]byte, error) {
 		for j, id := range c.Ids {
 			ptIds[j] = id.Bytes()
 		}
+		c.MultiTokenValues = []bchain.MultiTokenValue{}
 		ptMultiTokenValues := make([]*eth.ProtoAddrContracts_MultiTokenValue, len(c.MultiTokenValues))
 		for k, mtv := range c.MultiTokenValues {
 			ptMultiTokenValues[k] = &eth.ProtoAddrContracts_MultiTokenValue{
