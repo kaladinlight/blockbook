@@ -74,6 +74,7 @@ var (
 	noTxCache = flag.Bool("notxcache", false, "disable tx cache")
 
 	enableSubNewTx = flag.Bool("enablesubnewtx", false, "enable support for subscribing to all new transactions")
+	processERC1155 = flag.Bool("processerc1155", true, "process of erc1155 transactions (indexing and parsing)")
 
 	computeColumnStats  = flag.Bool("computedbstats", false, "compute column stats and exit")
 	computeFeeStatsFlag = flag.Bool("computefeestats", false, "compute fee stats for blocks in blockheight-blockuntil range and exit")
@@ -170,7 +171,7 @@ func mainWithExitCode() int {
 		return exitCodeFatal
 	}
 
-	index, err = db.NewRocksDB(*dbPath, *dbCache, *dbMaxOpenFiles, chain.GetChainParser(), metrics, *extendedIndex, *dbMaxAddrContracts)
+	index, err = db.NewRocksDB(*dbPath, *dbCache, *dbMaxOpenFiles, chain.GetChainParser(), metrics, *extendedIndex, *dbMaxAddrContracts, *processERC1155)
 	if err != nil {
 		glog.Error("rocksDB: ", err)
 		return exitCodeFatal

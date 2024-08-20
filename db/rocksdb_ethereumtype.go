@@ -581,7 +581,7 @@ func (d *RocksDB) processInternalData(blockTx *ethBlockTx, tx *bchain.Tx, id *bc
 }
 
 func (d *RocksDB) processContractTransfers(blockTx *ethBlockTx, tx *bchain.Tx, addresses addressesMap, addressContracts map[string]*AddrContracts) error {
-	tokenTransfers, err := d.chainParser.EthereumTypeGetTokenTransfersFromTx(tx)
+	tokenTransfers, err := d.chainParser.EthereumTypeGetTokenTransfersFromTx(tx, d.processERC1155)
 	if err != nil {
 		glog.Warningf("rocksdb: processContractTransfers %v, tx %v", err, tx.Txid)
 	}

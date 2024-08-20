@@ -470,13 +470,13 @@ func GetHeightFromTx(tx *bchain.Tx) (uint32, error) {
 }
 
 // EthereumTypeGetTokenTransfersFromTx returns contract transfers from bchain.Tx
-func (p *EthereumParser) EthereumTypeGetTokenTransfersFromTx(tx *bchain.Tx) (bchain.TokenTransfers, error) {
+func (p *EthereumParser) EthereumTypeGetTokenTransfersFromTx(tx *bchain.Tx, processERC1155 bool) (bchain.TokenTransfers, error) {
 	var r bchain.TokenTransfers
 	var err error
 	csd, ok := tx.CoinSpecificData.(bchain.EthereumSpecificData)
 	if ok {
 		if csd.Receipt != nil {
-			r, err = contractGetTransfersFromLog(csd.Receipt.Logs)
+			r, err = contractGetTransfersFromLog(csd.Receipt.Logs, processERC1155)
 		} else {
 			r, err = contractGetTransfersFromTx(csd.Tx)
 		}
