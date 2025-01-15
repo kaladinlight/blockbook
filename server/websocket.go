@@ -1019,7 +1019,7 @@ func (s *WebsocketServer) publishNewBlockTxsByAddr(block *bchain.Block) {
 				var tokenTransfers bchain.TokenTransfers
 				var internalTransfers []bchain.EthereumInternalTransfer
 				if s.chainParser.GetChainType() == bchain.ChainEthereumType {
-					tokenTransfers, _ = s.chainParser.EthereumTypeGetTokenTransfersFromTx(&tx)
+					tokenTransfers, _ = s.chainParser.EthereumTypeGetTokenTransfersFromTx(&tx, true)
 					esd := tx.CoinSpecificData.(bchain.EthereumSpecificData)
 					if esd.InternalData != nil {
 						internalTransfers = esd.InternalData.Transfers
