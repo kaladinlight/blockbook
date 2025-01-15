@@ -75,6 +75,7 @@ type RocksDB struct {
 	maxAddrContracts   int
 	addressContracts   map[string]*AddrContracts
 	protoAddrContracts bool
+	processERC1155     bool
 }
 
 const (
@@ -132,7 +133,7 @@ func openDB(path string, c *grocksdb.Cache, openFiles int) (*grocksdb.DB, []*gro
 
 // NewRocksDB opens an internal handle to RocksDB environment.  Close
 // needs to be called to release it.
-func NewRocksDB(path string, cacheSize, maxOpenFiles int, parser bchain.BlockChainParser, metrics *common.Metrics, extendedIndex bool, maxAddrContracts int, protoAddrContracts bool) (*RocksDB, error) {
+func NewRocksDB(path string, cacheSize, maxOpenFiles int, parser bchain.BlockChainParser, metrics *common.Metrics, extendedIndex bool, maxAddrContracts int, protoAddrContracts bool, processERC1155 bool) (*RocksDB, error) {
 	glog.Infof("rocksdb: opening %s, required data version %v, cache size %v, max open files %v", path, dbVersion, cacheSize, maxOpenFiles)
 
 	cfNames = append([]string{}, cfBaseNames...)
@@ -167,6 +168,7 @@ func NewRocksDB(path string, cacheSize, maxOpenFiles int, parser bchain.BlockCha
 		maxAddrContracts:   maxAddrContracts,
 		addressContracts:   make(map[string]*AddrContracts),
 		protoAddrContracts: protoAddrContracts,
+		processERC1155:     processERC1155,
 	}
 	return d, nil
 }
