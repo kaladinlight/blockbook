@@ -198,7 +198,7 @@ func processERC1155TransferBatchEvent(l *bchain.RpcLog) (transfer *bchain.TokenT
 	}, nil
 }
 
-func contractGetTransfersFromLog(logs []*bchain.RpcLog) (bchain.TokenTransfers, error) {
+func contractGetTransfersFromLog(logs []*bchain.RpcLog, processERC1155 bool) (bchain.TokenTransfers, error) {
 	var r bchain.TokenTransfers
 	var tt *bchain.TokenTransfer
 	var err error
@@ -208,9 +208,9 @@ func contractGetTransfersFromLog(logs []*bchain.RpcLog) (bchain.TokenTransfers, 
 			signature := l.Topics[0]
 			if signature == tokenTransferEventSignature {
 				tt, err = processTransferEvent(l)
-			} else if signature == tokenERC1155TransferSingleEventSignature {
+			} else if processERC1155 && signature == tokenERC1155TransferSingleEventSignature {
 				tt, err = processERC1155TransferSingleEvent(l)
-			} else if signature == tokenERC1155TransferBatchEventSignature {
+			} else if processERC1155 && signature == tokenERC1155TransferBatchEventSignature {
 				tt, err = processERC1155TransferBatchEvent(l)
 			} else {
 				continue
