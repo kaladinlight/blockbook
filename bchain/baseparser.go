@@ -314,7 +314,7 @@ func (p *BaseParser) DeriveAddressDescriptorsFromTo(descriptor *XpubDescriptor, 
 }
 
 // EthereumTypeGetTokenTransfersFromTx is unsupported
-func (p *BaseParser) EthereumTypeGetTokenTransfersFromTx(tx *Tx) (TokenTransfers, error) {
+func (p *BaseParser) EthereumTypeGetTokenTransfersFromTx(tx *Tx, processERC1155 bool) (TokenTransfers, error) {
 	return nil, errors.New("Not supported")
 }
 

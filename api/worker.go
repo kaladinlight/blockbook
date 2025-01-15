@@ -423,7 +423,7 @@ func (w *Worker) GetTransactionFromBchainTx(bchainTx *bchain.Tx, height int, spe
 		}
 		pValInSat = &valInSat
 	} else if w.chainType == bchain.ChainEthereumType {
-		tokenTransfers, err := w.chainParser.EthereumTypeGetTokenTransfersFromTx(bchainTx)
+		tokenTransfers, err := w.chainParser.EthereumTypeGetTokenTransfersFromTx(bchainTx, true)
 		if err != nil {
 			glog.Errorf("GetTokenTransfersFromTx error %v, %v", err, bchainTx)
 		}
