@@ -144,7 +144,7 @@ func packAddrContracts(acs *AddrContracts) ([]byte, error) {
 			Contract:         c.Contract,
 			Ids:              ptIds,
 			MultiTokenValues: ptMultiTokenValues,
-			Type:             int64(c.Type),
+			Standard:         int64(c.Standard),
 			Txs:              uint64(c.Txs),
 			Value:            c.Value.Bytes(),
 		}
@@ -170,12 +170,12 @@ func packAddrContractsLegacy(acs *AddrContracts) []byte {
 	buf = append(buf, varBuf[:l]...)
 	for _, ac := range acs.Contracts {
 		buf = append(buf, ac.Contract...)
-		l = packVaruint(uint(ac.Type)+ac.Txs<<2, varBuf)
+		l = packVaruint(uint(ac.Standard)+ac.Txs<<2, varBuf)
 		buf = append(buf, varBuf[:l]...)
-		if ac.Type == bchain.FungibleToken {
+		if ac.Standard == bchain.FungibleToken {
 			l = packBigint(&ac.Value, varBuf)
 			buf = append(buf, varBuf[:l]...)
-		} else if ac.Type == bchain.NonFungibleToken {
+		} else if ac.Standard == bchain.NonFungibleToken {
 			l = packVaruint(uint(len(ac.Ids)), varBuf)
 			buf = append(buf, varBuf[:l]...)
 			for i := range ac.Ids {
@@ -221,7 +221,7 @@ func unpackAddrContracts(buf []byte, addrDesc bchain.AddressDescriptor) (*AddrCo
 			}
 		}
 		contracts[i] = AddrContract{
-			Type:             bchain.TokenType(c.Type),
+			Standard:         bchain.TokenStandard(c.Standard),
 			Contract:         c.Contract,
 			Txs:              uint(c.Txs),
 			Value:            *new(big.Int).SetBytes(c.Value),

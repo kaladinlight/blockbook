@@ -756,13 +756,13 @@ func Test_packUnpackAddrContractsLegacy(t *testing.T) {
 				InternalTxs:    8873,
 				Contracts: []AddrContract{
 					{
-						Type:     bchain.FungibleToken,
+						Standard: bchain.FungibleToken,
 						Contract: addressToAddrDesc(dbtestdata.EthAddrContract0d, parser),
 						Txs:      8,
 						Value:    *big.NewInt(793201132),
 					},
 					{
-						Type:     bchain.NonFungibleToken,
+						Standard: bchain.NonFungibleToken,
 						Contract: addressToAddrDesc(dbtestdata.EthAddrContract47, parser),
 						Txs:      41235,
 						Ids: Ids{
@@ -774,7 +774,7 @@ func Test_packUnpackAddrContractsLegacy(t *testing.T) {
 						},
 					},
 					{
-						Type:     bchain.MultiToken,
+						Standard: bchain.MultiToken,
 						Contract: addressToAddrDesc(dbtestdata.EthAddrContract4a, parser),
 						Txs:      64,
 						MultiTokenValues: MultiTokenValues{
