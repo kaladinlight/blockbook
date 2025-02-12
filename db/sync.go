@@ -248,7 +248,11 @@ func (w *SyncWorker) connectBlocks(onNewBlock bchain.OnNewBlockFunc, initialSync
 				if res == empty {
 					break ConnectLoop
 				}
+				start := time.Now()
 				err := connect(res)
+				if elapsed := time.Since(start); elapsed > time.Second {
+					glog.Infof("connect block: %d, finished in %s", res.block.Height, elapsed)
+				}
 				if err != nil {
 					return err
 				}
@@ -257,7 +261,11 @@ func (w *SyncWorker) connectBlocks(onNewBlock bchain.OnNewBlockFunc, initialSync
 	} else {
 		// while regular sync, OS sig is handled by waitForSignalAndShutdown
 		for res := range bch {
+			start := time.Now()
 			err := connect(res)
+			if elapsed := time.Since(start); elapsed > time.Second {
+				glog.Infof("connect block: %d, finished in %s", res.block.Height, elapsed)
+			}
 			if err != nil {
 				return err
 			}

@@ -7,6 +7,7 @@ import (
 	"os"
 	"sort"
 	"sync"
+	"time"
 
 	vlq "github.com/bsm/go-vlq"
 	"github.com/golang/glog"
@@ -299,7 +300,11 @@ func (d *RocksDB) storeAddressContracts(wb *grocksdb.WriteBatch, acm map[string]
 			wb.DeleteCF(d.cfh[cfAddressContracts], bchain.AddressDescriptor(addrDesc))
 		} else {
 			if d.protoAddrContracts {
+				start := time.Now()
 				buf, err := packAddrContracts(acs)
+				if elapsed := time.Since(start); elapsed > time.Second {
+					glog.Info("pack addr contracts in ", elapsed)
+				}
 				if err != nil {
 					return err
 				}
@@ -424,7 +429,11 @@ func (d *RocksDB) addToAddressesAndContractsEthereumType(addrDesc bchain.Address
 	strAddrDesc := string(addrDesc)
 	ac, e := d.addressContracts[strAddrDesc]
 	if !e {
+		start := time.Now()
 		ac, err = d.GetAddrDescContracts(addrDesc)
+		if elapsed := time.Since(start); elapsed > time.Second {
+			glog.Info("get addr desc contracts in ", elapsed)
+		}
 		if err != nil {
 			return err
 		}
@@ -1097,7 +1106,12 @@ func (d *RocksDB) storeAndCleanupBlockTxsEthereumType(wb *grocksdb.WriteBatch, b
 	}
 	key := packUint(block.Height)
 	wb.PutCF(d.cfh[cfBlockTxs], key, buf)
-	return d.cleanupBlockTxs(wb, block)
+	start := time.Now()
+	err := d.cleanupBlockTxs(wb, block)
+	if elapsed := time.Since(start); elapsed > time.Second {
+		glog.Info("cleanup block txs in ", elapsed)
+	}
+	return err
 }
 
 func (d *RocksDB) StoreBlockInternalDataErrorEthereumType(wb *grocksdb.WriteBatch, block *bchain.Block, message string, retryCount uint8) error {
