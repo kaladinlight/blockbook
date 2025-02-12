@@ -127,7 +127,7 @@ type AddrContracts struct {
 }
 
 // packAddrContract packs AddrContracts into a protobuf encoded byte slice
-func packAddrContracts(acs *AddrContracts) ([]byte, error) {
+func packAddrContracts(acs *AddrContracts, processERC1155 bool) ([]byte, error) {
 	pt := &eth.ProtoAddrContracts{
 		TotalTxs:       uint64(acs.TotalTxs),
 		InternalTxs:    uint64(acs.InternalTxs),
@@ -136,20 +136,22 @@ func packAddrContracts(acs *AddrContracts) ([]byte, error) {
 	}
 	for i, c := range acs.Contracts {
 		pt.Contracts[i] = &eth.ProtoAddrContracts_AddrContract{
-			Contract:         c.Contract,
-			Standard:         int64(c.Standard),
-			Txs:              uint64(c.Txs),
-			Value:            c.Value.Bytes(),
-			Ids:              make([][]byte, len(c.Ids)),
-			MultiTokenValues: make([]*eth.ProtoAddrContracts_MultiTokenValue, len(c.MultiTokenValues)),
+			Contract: c.Contract,
+			Standard: int64(c.Standard),
+			Txs:      uint64(c.Txs),
+			Value:    c.Value.Bytes(),
+			Ids:      make([][]byte, len(c.Ids)),
 		}
 		for j, id := range c.Ids {
 			pt.Contracts[i].Ids[j] = id.Bytes()
 		}
-		for j, m := range c.MultiTokenValues {
-			pt.Contracts[i].MultiTokenValues[j] = &eth.ProtoAddrContracts_MultiTokenValue{
-				Id:    m.Id.Bytes(),
-				Value: m.Value.Bytes(),
+		if processERC1155 {
+			pt.Contracts[i].MultiTokenValues = make([]*eth.ProtoAddrContracts_MultiTokenValue, len(c.MultiTokenValues))
+			for j, m := range c.MultiTokenValues {
+				pt.Contracts[i].MultiTokenValues[j] = &eth.ProtoAddrContracts_MultiTokenValue{
+					Id:    m.Id.Bytes(),
+					Value: m.Value.Bytes(),
+				}
 			}
 		}
 	}
@@ -195,7 +197,7 @@ func packAddrContractsLegacy(acs *AddrContracts) []byte {
 }
 
 // unpackAddrContract unpacks the protobuf encoded byte slice into AddrContracts
-func unpackAddrContracts(buf []byte, addrDesc bchain.AddressDescriptor) (*AddrContracts, error) {
+func unpackAddrContracts(buf []byte, addrDesc bchain.AddressDescriptor, processERC1155 bool) (*AddrContracts, error) {
 	pt := &eth.ProtoAddrContracts{}
 	if err := proto.Unmarshal(buf, pt); err != nil {
 		return unpackAddrContractsLegacy(buf, addrDesc)
@@ -218,7 +220,7 @@ func unpackAddrContracts(buf []byte, addrDesc bchain.AddressDescriptor) (*AddrCo
 				contract.Ids[j].SetBytes(id)
 			}
 		}
-		if size := len(c.MultiTokenValues); size > 0 {
+		if size := len(c.MultiTokenValues); processERC1155 && size > 0 {
 			contract.MultiTokenValues = make(MultiTokenValues, size)
 			for j, mtv := range c.MultiTokenValues {
 				contract.MultiTokenValues[j].Id.SetBytes(mtv.Id)
@@ -301,7 +303,7 @@ func (d *RocksDB) storeAddressContracts(wb *grocksdb.WriteBatch, acm map[string]
 		} else {
 			if d.protoAddrContracts {
 				start := time.Now()
-				buf, err := packAddrContracts(acs)
+				buf, err := packAddrContracts(acs, d.processERC1155)
 				if elapsed := time.Since(start); elapsed > time.Second {
 					glog.Info("pack addr contracts in ", elapsed)
 				}
@@ -330,7 +332,7 @@ func (d *RocksDB) GetAddrDescContracts(addrDesc bchain.AddressDescriptor) (*Addr
 		return nil, nil
 	}
 	if d.protoAddrContracts {
-		return unpackAddrContracts(buf, addrDesc)
+		return unpackAddrContracts(buf, addrDesc, d.processERC1155)
 	} else {
 		return unpackAddrContractsLegacy(buf, addrDesc)
 	}
@@ -1529,7 +1531,7 @@ func (d *RocksDB) SortAddressContracts(stop chan os.Signal) error {
 			var ca *AddrContracts
 			var err error
 			if d.protoAddrContracts {
-				ca, err = unpackAddrContracts(buf, addrDesc)
+				ca, err = unpackAddrContracts(buf, addrDesc, d.processERC1155)
 			} else {
 				ca, err = unpackAddrContractsLegacy(buf, addrDesc)
 			}
@@ -1553,7 +1555,7 @@ func (d *RocksDB) SortAddressContracts(stop chan os.Signal) error {
 					wb := grocksdb.NewWriteBatch()
 					defer wb.Destroy()
 					if d.protoAddrContracts {
-						buf, err := packAddrContracts(ca)
+						buf, err := packAddrContracts(ca, d.processERC1155)
 						if err != nil {
 							return err
 						}
