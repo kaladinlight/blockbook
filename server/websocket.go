@@ -68,7 +68,7 @@ type WebsocketServer struct {
 	newTransactionSubscriptionsLock sync.Mutex
 	addressSubscriptions            map[string]map[*websocketChannel]*WsSubscribeAddressesDetails
 	addressSubscriptionsLock        sync.Mutex
-	newBlockTxsSubscriptionCount    atomic.Int64
+	newBlockTxsSubscriptionCount    int
 	fiatRatesSubscriptions          map[string]map[*websocketChannel]string
 	fiatRatesTokenSubscriptions     map[*websocketChannel][]string
 	fiatRatesSubscriptionsLock      sync.Mutex
@@ -889,15 +889,14 @@ func (s *WebsocketServer) unmarshalAddresses(params []byte) ([]string, bool, err
 
 // unsubscribe addresses without addressSubscriptionsLock - can be called only from subscribeAddresses and unsubscribeAddresses
 func (s *WebsocketServer) doUnsubscribeAddresses(c *websocketChannel) {
-	newBlockTxs := false
 	for _, ads := range c.addrDescs {
 		sa, e := s.addressSubscriptions[ads]
 		if e {
 			for sc, details := range sa {
-				if details.publishNewBlockTxs {
-					newBlockTxs = true
-				}
 				if sc == c {
+					if details.publishNewBlockTxs {
+						s.newBlockTxsSubscriptionCount--
+					}
 					delete(sa, c)
 				}
 			}
@@ -906,18 +905,12 @@ func (s *WebsocketServer) doUnsubscribeAddresses(c *websocketChannel) {
 			}
 		}
 	}
-	if newBlockTxs {
-		s.newBlockTxsSubscriptionCount.Add(-1)
-	}
 	c.addrDescs = nil
 }
 
 func (s *WebsocketServer) subscribeAddresses(c *websocketChannel, addrDesc []string, newBlockTxs bool, req *WsReq) (res interface{}, err error) {
 	s.addressSubscriptionsLock.Lock()
 	defer s.addressSubscriptionsLock.Unlock()
-	if newBlockTxs {
-		s.newBlockTxsSubscriptionCount.Add(1)
-	}
 	// unsubscribe all previous subscriptions
 	s.doUnsubscribeAddresses(c)
 	for _, ads := range addrDesc {
@@ -929,6 +922,9 @@ func (s *WebsocketServer) subscribeAddresses(c *websocketChannel, addrDesc []str
 		as[c] = &WsSubscribeAddressesDetails{
 			requestID:          req.ID,
 			publishNewBlockTxs: newBlockTxs,
+		}
+		if newBlockTxs {
+			s.newBlockTxsSubscriptionCount++
 		}
 	}
 	c.addrDescs = addrDesc
@@ -1016,7 +1012,7 @@ func (s *WebsocketServer) onNewBlockAsync(hash string, height uint32) {
 func (s *WebsocketServer) publishNewBlockTxsByAddr(block *bchain.Block) {
 	s.addressSubscriptionsLock.Lock()
 	s.addressSubscriptionsLock.Unlock()
-	if s.newBlockTxsSubscriptionCount.Load() > 0 {
+	if s.newBlockTxsSubscriptionCount > 0 {
 		for _, tx := range block.Txs {
 			tx := tx
 			go func() {
